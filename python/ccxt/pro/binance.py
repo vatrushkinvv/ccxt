@@ -724,7 +724,7 @@ class binance(ccxt.async_support.binance):
         subscribe = {
             'id': requestId,
         }
-        ohlcv = await self.watch_multiple(url, messageHash, self.extend(request, params), messageHash, subscribe)
+        ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscribe)
         if self.newUpdates:
             limit = ohlcv.getLimit(None, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)

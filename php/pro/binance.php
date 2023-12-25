@@ -795,7 +795,7 @@ class binance extends \ccxt\async\binance {
             $subscribe = array(
                 'id' => $requestId,
             );
-            $ohlcv = Async\await($this->watch_multiple($url, $messageHash, array_merge($request, $params), $messageHash, $subscribe));
+            $ohlcv = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscribe));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit (null, $limit);
             }

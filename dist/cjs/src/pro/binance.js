@@ -782,7 +782,7 @@ class binance extends binance$1 {
         const subscribe = {
             'id': requestId,
         };
-        const ohlcv = await this.watchMultiple(url, messageHash, this.extend(request, params), messageHash, subscribe);
+        const ohlcv = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscribe);
         if (this.newUpdates) {
             limit = ohlcv.getLimit(undefined, limit);
         }
