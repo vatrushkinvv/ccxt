@@ -1,5 +1,5 @@
 import binanceRest from '../binance.js';
-import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, LeverageUpdates, FundingFee } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, LeverageUpdates, FundingFee, Dictionary } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class binance extends binanceRest {
     describe(): any;
@@ -19,7 +19,7 @@ export default class binance extends binanceRest {
     parseTrade(trade: any, market?: any): Trade;
     handleTrade(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    watchMultipleOHLCV(symbols: string[], timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMultipleOHLCV(symbols: string[], timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<Dictionary<Dictionary<OHLCV[]>>>;
     handleOHLCV(client: Client, message: any): void;
     watchLeverageUpdates(params?: {}): Promise<LeverageUpdates>;
     handleLeverageUpdates(client: Client, message: any): Promise<void>;

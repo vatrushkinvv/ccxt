@@ -594,6 +594,9 @@ class Exchange(BaseExchange):
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCVForSymbols() is not supported yet')
 
+    async def watch_multiple_ohlcv(self, symbols: List[str], timeframe: str, since: Int, limit: Int, params: {}):
+        raise NotSupported(self.id + ' watchMultipleOHLCV() is not supported yet')
+
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOrderBookForSymbols() is not supported yet')
 

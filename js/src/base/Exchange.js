@@ -455,6 +455,7 @@ export default class Exchange {
                 'watchTradesForSymbols': undefined,
                 'watchOrderBookForSymbols': undefined,
                 'watchOHLCVForSymbols': undefined,
+                'watchMultipleOHLCV': undefined,
                 'watchBalance': undefined,
                 'watchOHLCV': undefined,
                 'watchLeverageUpdates': undefined,
@@ -1618,6 +1619,9 @@ export default class Exchange {
     }
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' watchOHLCVForSymbols() is not supported yet');
+    }
+    async watchMultipleOHLCV(symbols, timeframe, since, limit, params) {
+        throw new NotSupported(this.id + ' watchMultipleOHLCV() is not supported yet');
     }
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' watchOrderBookForSymbols() is not supported yet');

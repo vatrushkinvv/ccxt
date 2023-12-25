@@ -682,7 +682,7 @@ class binance(ccxt.async_support.binance):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def watch_multiple_ohlcv(self, symbols: List[str], timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def watch_multiple_ohlcv(self, symbols: List[str], timeframe='1m', since: Int = None, limit: Int = None, params={}) -> Promise<Dictionary<Dictionary<OHLCV[]>>>:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbols: unified symbol of the market to fetch OHLCV data for

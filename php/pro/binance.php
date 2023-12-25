@@ -749,7 +749,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function watch_multiple_ohlcv(array $symbols, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_multiple_ohlcv(array $symbols, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         return Async\async(function () use ($symbols, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market

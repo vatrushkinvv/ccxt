@@ -2468,6 +2468,10 @@ class Exchange {
         throw new NotSupported($this->id . ' watchOHLCVForSymbols() is not supported yet');
     }
 
+    public function watch_multiple_ohlcv(array $symbols, string $timeframe, ?int $since, ?int $limit, ?array () $params) {
+        throw new NotSupported($this->id . ' watchMultipleOHLCV() is not supported yet');
+    }
+
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOrderBookForSymbols() is not supported yet');
     }

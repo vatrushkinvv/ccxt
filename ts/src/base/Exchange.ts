@@ -573,6 +573,7 @@ export default class Exchange {
                 'watchTradesForSymbols': undefined,
                 'watchOrderBookForSymbols': undefined,
                 'watchOHLCVForSymbols': undefined,
+                'watchMultipleOHLCV': undefined,
                 'watchBalance': undefined,
                 'watchOHLCV': undefined,
                 'watchLeverageUpdates': undefined,
@@ -1920,6 +1921,10 @@ export default class Exchange {
 
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
         throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
+    }
+
+    async watchMultipleOHLCV (symbols: string[], timeframe: string, since?: Int, limit?: Int, params?: {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
+        throw new NotSupported (this.id + ' watchMultipleOHLCV() is not supported yet');
     }
 
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
