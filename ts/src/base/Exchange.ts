@@ -573,7 +573,6 @@ export default class Exchange {
                 'watchTradesForSymbols': undefined,
                 'watchOrderBookForSymbols': undefined,
                 'watchOHLCVForSymbols': undefined,
-                'watchMultipleOHLCV': undefined,
                 'watchBalance': undefined,
                 'watchOHLCV': undefined,
                 'watchLeverageUpdates': undefined,
@@ -1921,10 +1920,6 @@ export default class Exchange {
 
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
         throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
-    }
-
-    async watchMultipleOHLCV (symbols: string[], timeframe: string, since?: Int, limit?: Int, params?: {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
-        throw new NotSupported (this.id + ' watchMultipleOHLCV() is not supported yet');
     }
 
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -5120,6 +5115,20 @@ export default class Exchange {
          * @description Typed wrapper for filterByArray that returns a dictionary of tickers
          */
         return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
+    }
+
+    resolveMultipleOHLCV (client, prefix: string, symbol: string, timeframe: string, data) {
+        const messageHashes = this.findMessageHashes (client, 'multipleOHLCV::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsAndTimeframes = parts[1];
+            const splitted = symbolsAndTimeframes.split (',');
+            const id = symbol + '#' + timeframe;
+            if (this.inArray (id, splitted)) {
+                client.resolve ([ symbol, timeframe, data ], messageHash);
+            }
+        }
     }
 
     createOHLCVObject (symbol: string, timeframe: string, data): Dictionary<Dictionary<OHLCV[]>> {

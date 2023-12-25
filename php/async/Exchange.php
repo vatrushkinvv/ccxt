@@ -649,10 +649,6 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchOHLCVForSymbols() is not supported yet');
     }
 
-    public function watch_multiple_ohlcv(array $symbols, string $timeframe, ?int $since, ?int $limit, ?array () $params) {
-        throw new NotSupported($this->id . ' watchMultipleOHLCV() is not supported yet');
-    }
-
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOrderBookForSymbols() is not supported yet');
     }
@@ -3909,6 +3905,20 @@ class Exchange extends \ccxt\Exchange {
          * Typed wrapper for filterByArray that returns a dictionary of tickers
          */
         return $this->filter_by_array($objects, $key, $values, $indexed);
+    }
+
+    public function resolve_multiple_ohlcv($client, string $prefix, string $symbol, string $timeframe, $data) {
+        $messageHashes = $this->findMessageHashes ($client, 'multipleOHLCV::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsAndTimeframes = $parts[1];
+            $splitted = explode(',', $symbolsAndTimeframes);
+            $id = $symbol . '#' . $timeframe;
+            if ($this->in_array($id, $splitted)) {
+                $client->resolve (array( $symbol, $timeframe, $data ), $messageHash);
+            }
+        }
     }
 
     public function create_ohlcv_object(string $symbol, string $timeframe, $data) {

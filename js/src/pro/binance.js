@@ -22,8 +22,7 @@ export default class binance extends binanceRest {
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
-                'watchMultipleOHLCV': true,
-                'watchOHLCVForSymbols': false,
+                'watchOHLCVForSymbols': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
@@ -738,43 +737,45 @@ export default class binance extends binanceRest {
         }
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
-    async watchMultipleOHLCV(symbols, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name binance#watchMultipleOHLCV
+         * @name binance#watchOHLCVForSymbols
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbols unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const options = this.safeValue(this.options, 'watchOHLCV', {});
         const nameOption = this.safeString(options, 'name', 'kline');
         const name = this.safeString(params, 'name', nameOption);
         params = this.omit(params, 'name');
-        const messageHash = 'multipleOHLCV::' + symbols.join(',') + '::' + name + '::' + interval;
-        const firstMarket = this.market(symbols[0]);
+        const firstMarket = this.market(symbolsAndTimeframes[0][0]);
         let type = firstMarket['type'];
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         const subParams = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const market = this.market(symbol);
+        const hashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = symbolsAndTimeframes[i];
+            const symbolString = data[0];
+            const timeframeString = data[1];
+            const interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            const market = this.market(symbolString);
             let marketId = market['lowercaseId'];
             if (name === 'indexPriceKline') {
                 // weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace('_perp', '');
             }
-            const currentMessageHash = marketId + '@' + name + '_' + interval;
-            subParams.push(currentMessageHash);
+            const topic = marketId + '@' + name + '_' + interval;
+            subParams.push(topic);
+            hashes.push(symbolString + '#' + timeframeString);
         }
+        const messageHash = 'multipleOHLCV::' + hashes.join(',');
         const url = this.urls['api']['ws'][type] + '/' + this.stream(type, messageHash);
         const requestId = this.requestId(url);
         const request = {
@@ -785,11 +786,12 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        const ohlcv = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscribe);
+        const [symbol, timeframe, stored] = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscribe);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(undefined, limit);
+            limit = stored.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
+        return this.createOHLCVObject(symbol, timeframe, filtered);
     }
     handleOHLCV(client, message) {
         //
@@ -855,17 +857,8 @@ export default class binance extends binanceRest {
         }
         stored.append(parsed);
         client.resolve(stored, messageHash);
-        const messageHashes = this.findMessageHashes(client, 'multipleOHLCV::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const currentMessageHash = messageHashes[i];
-            const parts = currentMessageHash.split('::');
-            const subInterval = parts[3];
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split(',');
-            if ((subInterval === interval) && this.inArray(symbol, symbols)) {
-                client.resolve(stored, currentMessageHash);
-            }
-        }
+        // watchOHLCVForSymbols part
+        this.resolveMultipleOHLCV(client, 'multipleOHLCV::', symbol, timeframe, stored);
     }
     async watchLeverageUpdates(params) {
         await this.loadMarkets();

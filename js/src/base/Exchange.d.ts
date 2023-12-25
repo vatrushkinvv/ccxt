@@ -399,7 +399,6 @@ export default class Exchange {
             watchTradesForSymbols: any;
             watchOrderBookForSymbols: any;
             watchOHLCVForSymbols: any;
-            watchMultipleOHLCV: any;
             watchBalance: any;
             watchOHLCV: any;
             watchLeverageUpdates: any;
@@ -578,7 +577,6 @@ export default class Exchange {
     watchMyTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<Dictionary<Dictionary<OHLCV[]>>>;
-    watchMultipleOHLCV(symbols: string[], timeframe: string, since?: Int, limit?: Int, params?: {}): Promise<Dictionary<Dictionary<OHLCV[]>>>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     watchLeverageUpdates(params?: {}): Promise<LeverageUpdates>;
     watchFundingFee(params?: {}): Promise<FundingFee>;
@@ -878,6 +876,7 @@ export default class Exchange {
     fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     filterByArrayPositions(objects: any, key: IndexType, values?: any, indexed?: boolean): Position[];
     filterByArrayTickers(objects: any, key: IndexType, values?: any, indexed?: boolean): Dictionary<Ticker>;
+    resolveMultipleOHLCV(client: any, prefix: string, symbol: string, timeframe: string, data: any): void;
     createOHLCVObject(symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>>;
     handleMaxEntriesPerRequestAndParams(method: string, maxEntriesPerRequest?: Int, params?: {}): [Int, any];
     fetchPaginatedCallDynamic(method: string, symbol?: string, since?: Int, limit?: Int, params?: {}, maxEntriesPerRequest?: Int): Promise<any>;

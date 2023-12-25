@@ -1964,9 +1964,6 @@ class Exchange(object):
     def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCVForSymbols() is not supported yet')
 
-    def watch_multiple_ohlcv(self, symbols: List[str], timeframe: str, since: Int, limit: Int, params: {}):
-        raise NotSupported(self.id + ' watchMultipleOHLCV() is not supported yet')
-
     def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOrderBookForSymbols() is not supported yet')
 
@@ -4548,6 +4545,17 @@ class Exchange(object):
         Typed wrapper for filterByArray that returns a dictionary of tickers
         """
         return self.filter_by_array(objects, key, values, indexed)
+
+    def resolve_multiple_ohlcv(self, client, prefix: str, symbol: str, timeframe: str, data):
+        messageHashes = self.findMessageHashes(client, 'multipleOHLCV::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsAndTimeframes = parts[1]
+            splitted = symbolsAndTimeframes.split(',')
+            id = symbol + '#' + timeframe
+            if self.in_array(id, splitted):
+                client.resolve([symbol, timeframe, data], messageHash)
 
     def create_ohlcv_object(self, symbol: str, timeframe: str, data):
         res = {}
