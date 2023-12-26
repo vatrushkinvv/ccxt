@@ -783,7 +783,7 @@ class binance extends binance$1 {
         const subscribe = {
             'id': requestId,
         };
-        const [symbol, timeframe, stored] = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscribe);
+        const [symbol, timeframe, stored] = await this.watchMultiple(url, subParams, this.extend(request, params), messageHash, subscribe);
         if (this.newUpdates) {
             limit = stored.getLimit(symbol, limit);
         }

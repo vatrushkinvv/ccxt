@@ -725,7 +725,7 @@ class binance(ccxt.async_support.binance):
         subscribe = {
             'id': requestId,
         }
-        symbol, timeframe, stored = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscribe)
+        symbol, timeframe, stored = await self.watch_multiple(url, subParams, self.extend(request, params), messageHash, subscribe)
         if self.newUpdates:
             limit = stored.getLimit(symbol, limit)
         filtered = self.filter_by_since_limit(stored, since, limit, 0, True)

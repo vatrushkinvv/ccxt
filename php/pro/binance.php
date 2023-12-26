@@ -796,7 +796,7 @@ class binance extends \ccxt\async\binance {
             $subscribe = array(
                 'id' => $requestId,
             );
-            list($symbol, $timeframe, $stored) = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscribe));
+            list($symbol, $timeframe, $stored) = Async\await($this->watch_multiple($url, $subParams, array_merge($request, $params), $messageHash, $subscribe));
             if ($this->newUpdates) {
                 $limit = $stored->getLimit ($symbol, $limit);
             }
