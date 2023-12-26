@@ -34,7 +34,7 @@ class bybit(ccxt.async_support.bybit):
                 'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
-                'watchOHLCVForSymbols': True,
+                'watchOHLCVForSymbols': False,
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
@@ -384,41 +384,6 @@ class bybit(ccxt.async_support.bybit):
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
-
-    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
-        """
-        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/kline
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
-        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-        :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A list of candles ordered, open, high, low, close, volume
-        """
-        await self.load_markets()
-        topics = []
-        hashes = []
-        firstSymbol = None
-        for i in range(0, len(symbolsAndTimeframes)):
-            data = symbolsAndTimeframes[i]
-            symbolString = self.safe_string(data, 0)
-            timeframeString = self.safe_string(data, 1)
-            market = self.market(symbolString)
-            symbolString = market['symbol']
-            if i == 0:
-                firstSymbol = market['symbol']
-            timeframeId = self.safe_string(self.timeframes, timeframeString, timeframeString)
-            topic = 'kline.' + timeframeId + '.' + market['id']
-            topics.append(topic)
-            hashes.append(symbolString + '#' + timeframeString)
-        messageHash = 'multipleOHLCV::' + ','.join(hashes)
-        url = self.get_url_by_market_type(firstSymbol, False, params)
-        symbol, timeframe, stored = await self.watch_topics(url, messageHash, topics, params)
-        if self.newUpdates:
-            limit = stored.getLimit(symbol, limit)
-        filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
-        return self.create_ohlcv_object(symbol, timeframe, filtered)
 
     def handle_ohlcv(self, client: Client, message):
         #

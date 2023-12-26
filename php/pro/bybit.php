@@ -32,7 +32,7 @@ class bybit extends \ccxt\async\bybit {
                 'watchBalance' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
-                'watchOHLCVForSymbols' => true,
+                'watchOHLCVForSymbols' => false,
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
@@ -404,47 +404,6 @@ class bybit extends \ccxt\async\bybit {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
-    }
-
-    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
-            /**
-             * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A list of candles ordered, open, high, low, close, volume
-             */
-            Async\await($this->load_markets());
-            $topics = array();
-            $hashes = array();
-            $firstSymbol = null;
-            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                $data = $symbolsAndTimeframes[$i];
-                $symbolString = $this->safe_string($data, 0);
-                $timeframeString = $this->safe_string($data, 1);
-                $market = $this->market($symbolString);
-                $symbolString = $market['symbol'];
-                if ($i === 0) {
-                    $firstSymbol = $market['symbol'];
-                }
-                $timeframeId = $this->safe_string($this->timeframes, $timeframeString, $timeframeString);
-                $topic = 'kline.' . $timeframeId . '.' . $market['id'];
-                $topics[] = $topic;
-                $hashes[] = $symbolString . '#' . $timeframeString;
-            }
-            $messageHash = 'multipleOHLCV::' . implode(',', $hashes);
-            $url = $this->get_url_by_market_type($firstSymbol, false, $params);
-            list($symbol, $timeframe, $stored) = Async\await($this->watch_topics($url, $messageHash, $topics, $params));
-            if ($this->newUpdates) {
-                $limit = $stored->getLimit ($symbol, $limit);
-            }
-            $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
-            return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
         }) ();
     }
 
