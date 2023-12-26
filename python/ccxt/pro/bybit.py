@@ -414,7 +414,7 @@ class bybit(ccxt.async_support.bybit):
             hashes.append(symbolString + '#' + timeframeString)
         messageHash = 'multipleOHLCV::' + ','.join(hashes)
         url = self.get_url_by_market_type(firstSymbol, False, params)
-        symbol, timeframe, stored = await self.watch_topics(url, messageHash, topics, params)
+        symbol, timeframe, stored = await self.watch_topics(url, [messageHash], topics, params)
         if self.newUpdates:
             limit = stored.getLimit(symbol, limit)
         filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
@@ -467,6 +467,8 @@ class bybit(ccxt.async_support.bybit):
             stored.append(parsed)
         messageHash = 'kline' + ':' + timeframeId + ':' + symbol
         client.resolve(stored, messageHash)
+        # watchOHLCVForSymbols part
+        self.resolve_multiple_ohlcv(client, 'multipleOHLCV::', symbol, timeframe, stored)
 
     def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
