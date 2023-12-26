@@ -429,7 +429,7 @@ class bybit extends bybit$1 {
         }
         const messageHash = 'multipleOHLCV::' + hashes.join(',');
         const url = this.getUrlByMarketType(firstSymbol, false, params);
-        const [symbol, timeframe, stored] = await this.watchTopics(url, [messageHash], topics, params);
+        const [symbol, timeframe, stored] = await this.watchTopics(url, messageHash, topics, params);
         if (this.newUpdates) {
             limit = stored.getLimit(symbol, limit);
         }
@@ -486,8 +486,6 @@ class bybit extends bybit$1 {
         }
         const messageHash = 'kline' + ':' + timeframeId + ':' + symbol;
         client.resolve(stored, messageHash);
-        // watchOHLCVForSymbols part
-        this.resolveMultipleOHLCV(client, 'multipleOHLCV::', symbol, timeframe, stored);
     }
     parseWsOHLCV(ohlcv, market = undefined) {
         //

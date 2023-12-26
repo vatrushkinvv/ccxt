@@ -439,7 +439,7 @@ class bybit extends \ccxt\async\bybit {
             }
             $messageHash = 'multipleOHLCV::' . implode(',', $hashes);
             $url = $this->get_url_by_market_type($firstSymbol, false, $params);
-            list($symbol, $timeframe, $stored) = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
+            list($symbol, $timeframe, $stored) = Async\await($this->watch_topics($url, $messageHash, $topics, $params));
             if ($this->newUpdates) {
                 $limit = $stored->getLimit ($symbol, $limit);
             }
@@ -498,8 +498,6 @@ class bybit extends \ccxt\async\bybit {
         }
         $messageHash = 'kline' . ':' . $timeframeId . ':' . $symbol;
         $client->resolve ($stored, $messageHash);
-        // watchOHLCVForSymbols part
-        $this->resolve_multiple_ohlcv($client, 'multipleOHLCV::', $symbol, $timeframe, $stored);
     }
 
     public function parse_ws_ohlcv($ohlcv, $market = null): array {
