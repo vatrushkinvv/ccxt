@@ -755,8 +755,8 @@ class binance extends binance$1 {
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
+        const messageHashes = [];
         const subParams = [];
-        const hashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             const symbolString = data[0];
@@ -769,11 +769,12 @@ class binance extends binance$1 {
                 marketId = marketId.replace('_perp', '');
             }
             const topic = marketId + '@' + name + '_' + interval;
+            const hash = symbolString + '#' + timeframeString;
+            const messageHash = 'multipleOHLCV::' + hash;
             subParams.push(topic);
-            hashes.push(symbolString + '#' + timeframeString);
+            messageHashes.push(messageHash);
         }
-        const messageHash = 'multipleOHLCV::' + hashes.join(',');
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, messageHash);
+        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, 'multipleOHLCV');
         const requestId = this.requestId(url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -783,11 +784,11 @@ class binance extends binance$1 {
         const subscribe = {
             'id': requestId,
         };
-        const [symbol, timeframe, stored] = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscribe);
+        const [symbol, timeframe, ohlcvs] = await this.watchMultiple(url, messageHashes, this.extend(request, params), subParams, subscribe);
         if (this.newUpdates) {
-            limit = stored.getLimit(symbol, limit);
+            limit = ohlcvs.getLimit(symbol, limit);
         }
-        const filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit(ohlcvs, since, limit, 0, true);
         return this.createOHLCVObject(symbol, timeframe, filtered);
     }
     handleOHLCV(client, message) {

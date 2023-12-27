@@ -4626,16 +4626,10 @@ class Exchange {
         return this.filterByArray(objects, key, values, indexed);
     }
     resolveMultipleOHLCV(client, prefix, symbol, timeframe, data) {
-        const messageHashes = this.findMessageHashes(client, 'multipleOHLCV::');
+        const messageHashes = this.findMessageHashes(client, 'multipleOHLCV::' + symbol + '#' + timeframe);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
-            const parts = messageHash.split('::');
-            const symbolsAndTimeframes = parts[1];
-            const splitted = symbolsAndTimeframes.split(',');
-            const id = symbol + '#' + timeframe;
-            if (this.inArray(id, splitted)) {
-                client.resolve([symbol, timeframe, data], messageHash);
-            }
+            client.resolve([symbol, timeframe, data], messageHash);
         }
     }
     createOHLCVObject(symbol, timeframe, data) {

@@ -768,6 +768,7 @@ class binance extends \ccxt\async\binance {
             if ($firstMarket['contract']) {
                 $type = $firstMarket['linear'] ? 'future' : 'delivery';
             }
+            $messageHashes = array();
             $subParams = array();
             $hashes = array();
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
@@ -782,11 +783,13 @@ class binance extends \ccxt\async\binance {
                     $marketId = str_replace('_perp', '', $marketId);
                 }
                 $topic = $marketId . '@' . $name . '_' . $interval;
+                $hash = $symbolString . '#' . $timeframeString;
+                $messageHash = 'multipleOHLCV::' . $hash;
                 $subParams[] = $topic;
-                $hashes[] = $symbolString . '#' . $timeframeString;
+                $hashes[] = $hash;
+                $messageHashes[] = $messageHash;
             }
-            $messageHash = 'multipleOHLCV::' . implode(',', $hashes);
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, 'multipleOHLCV');
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'SUBSCRIBE',
@@ -796,11 +799,11 @@ class binance extends \ccxt\async\binance {
             $subscribe = array(
                 'id' => $requestId,
             );
-            list($symbol, $timeframe, $stored) = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscribe));
+            list($symbol, $timeframe, $ohlcvs) = Async\await($this->watch_multiple($url, $messageHashes, array_merge($request, $params), $subParams, $subscribe));
             if ($this->newUpdates) {
-                $limit = $stored->getLimit ($symbol, $limit);
+                $limit = $ohlcvs->getLimit ($symbol, $limit);
             }
-            $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
+            $filtered = $this->filter_by_since_limit($ohlcvs, $since, $limit, 0, true);
             return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
         }) ();
     }

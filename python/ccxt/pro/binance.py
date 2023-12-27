@@ -699,6 +699,7 @@ class binance(ccxt.async_support.binance):
         type = firstMarket['type']
         if firstMarket['contract']:
             type = 'future' if firstMarket['linear'] else 'delivery'
+        messageHashes = []
         subParams = []
         hashes = []
         for i in range(0, len(symbolsAndTimeframes)):
@@ -712,10 +713,12 @@ class binance(ccxt.async_support.binance):
                 # weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace('_perp', '')
             topic = marketId + '@' + name + '_' + interval
+            hash = symbolString + '#' + timeframeString
+            messageHash = 'multipleOHLCV::' + hash
             subParams.append(topic)
-            hashes.append(symbolString + '#' + timeframeString)
-        messageHash = 'multipleOHLCV::' + ','.join(hashes)
-        url = self.urls['api']['ws'][type] + '/' + self.stream(type, messageHash)
+            hashes.append(hash)
+            messageHashes.append(messageHash)
+        url = self.urls['api']['ws'][type] + '/' + self.stream(type, 'multipleOHLCV')
         requestId = self.request_id(url)
         request = {
             'method': 'SUBSCRIBE',
@@ -725,10 +728,10 @@ class binance(ccxt.async_support.binance):
         subscribe = {
             'id': requestId,
         }
-        symbol, timeframe, stored = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscribe)
+        symbol, timeframe, ohlcvs = await self.watch_multiple(url, messageHashes, self.extend(request, params), subParams, subscribe)
         if self.newUpdates:
-            limit = stored.getLimit(symbol, limit)
-        filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
+            limit = ohlcvs.getLimit(symbol, limit)
+        filtered = self.filter_by_since_limit(ohlcvs, since, limit, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
     def handle_ohlcv(self, client: Client, message):

@@ -767,6 +767,7 @@ export default class binance extends binanceRest {
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
+        const messageHashes = [];
         const subParams = [];
         const hashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
@@ -781,11 +782,13 @@ export default class binance extends binanceRest {
                 marketId = marketId.replace ('_perp', '');
             }
             const topic = marketId + '@' + name + '_' + interval;
+            const hash = symbolString + '#' + timeframeString;
+            const messageHash = 'multipleOHLCV::' + hash;
             subParams.push (topic);
-            hashes.push (symbolString + '#' + timeframeString);
+            hashes.push (hash);
+            messageHashes.push (messageHash);
         }
-        const messageHash = 'multipleOHLCV::' + hashes.join (',');
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'multipleOHLCV');
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -795,11 +798,11 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        const [ symbol, timeframe, stored ] = await this.watchMultiple (url, subParams, this.extend (request, params), messageHash, subscribe);
+        const [ symbol, timeframe, ohlcvs ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), subParams, subscribe);
         if (this.newUpdates) {
-            limit = stored.getLimit (symbol, limit);
+            limit = ohlcvs.getLimit (symbol, limit);
         }
-        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit (ohlcvs, since, limit, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 

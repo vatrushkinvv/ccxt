@@ -3908,16 +3908,10 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function resolve_multiple_ohlcv($client, string $prefix, string $symbol, string $timeframe, $data) {
-        $messageHashes = $this->findMessageHashes ($client, 'multipleOHLCV::');
+        $messageHashes = $this->findMessageHashes ($client, 'multipleOHLCV::' . $symbol . '#' . $timeframe);
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];
-            $parts = explode('::', $messageHash);
-            $symbolsAndTimeframes = $parts[1];
-            $splitted = explode(',', $symbolsAndTimeframes);
-            $id = $symbol . '#' . $timeframe;
-            if ($this->in_array($id, $splitted)) {
-                $client->resolve (array( $symbol, $timeframe, $data ), $messageHash);
-            }
+            $client->resolve (array( $symbol, $timeframe, $data ), $messageHash);
         }
     }
 
