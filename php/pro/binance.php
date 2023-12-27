@@ -748,6 +748,66 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
+    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
+            /**
+             * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $options = $this->safe_value($this->options, 'watchOHLCV', array());
+            $nameOption = $this->safe_string($options, 'name', 'kline');
+            $name = $this->safe_string($params, 'name', $nameOption);
+            $params = $this->omit($params, 'name');
+            $firstMarket = $this->market($symbolsAndTimeframes[0][0]);
+            $type = $firstMarket['type'];
+            if ($firstMarket['contract']) {
+                $type = $firstMarket['linear'] ? 'future' : 'delivery';
+            }
+            $messageHashes = array();
+            $subParams = array();
+            $hashes = array();
+            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+                $data = $symbolsAndTimeframes[$i];
+                $symbolString = $data[0];
+                $timeframeString = $data[1];
+                $interval = $this->safe_string($this->timeframes, $timeframeString, $timeframeString);
+                $market = $this->market($symbolString);
+                $marketId = $market['lowercaseId'];
+                if ($name === 'indexPriceKline') {
+                    // weird behavior for index price kline we can't use the perp suffix
+                    $marketId = str_replace('_perp', '', $marketId);
+                }
+                $topic = $marketId . '@' . $name . '_' . $interval;
+                $hash = $symbolString . '#' . $timeframeString;
+                $messageHash = 'multipleOHLCV::' . $hash;
+                $subParams[] = $topic;
+                $hashes[] = $hash;
+                $messageHashes[] = $messageHash;
+            }
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, 'multipleOHLCV');
+            $requestId = $this->request_id($url);
+            $request = array(
+                'method' => 'SUBSCRIBE',
+                'params' => $subParams,
+                'id' => $requestId,
+            );
+            $subscribe = array(
+                'id' => $requestId,
+            );
+            list($symbol, $timeframe, $ohlcvs) = Async\await($this->watch_multiple($url, $messageHashes, array_merge($request, $params), $subParams, $subscribe));
+            if ($this->newUpdates) {
+                $limit = $ohlcvs->getLimit ($symbol, $limit);
+            }
+            $filtered = $this->filter_by_since_limit($ohlcvs, $since, $limit, 0, true);
+            return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
+        }) ();
+    }
+
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
@@ -812,6 +872,8 @@ class binance extends \ccxt\async\binance {
         }
         $stored->append ($parsed);
         $client->resolve ($stored, $messageHash);
+        // watchOHLCVForSymbols part
+        $this->resolve_multiple_ohlcv($client, 'multipleOHLCV::', $symbol, $timeframe, $stored);
     }
 
     public function watch_leverage_updates(?array () $params): PromiseInterface {

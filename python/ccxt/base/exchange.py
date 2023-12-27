@@ -4546,6 +4546,12 @@ class Exchange(object):
         """
         return self.filter_by_array(objects, key, values, indexed)
 
+    def resolve_multiple_ohlcv(self, client, prefix: str, symbol: str, timeframe: str, data):
+        messageHashes = self.findMessageHashes(client, 'multipleOHLCV::' + symbol + '#' + timeframe)
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            client.resolve([symbol, timeframe, data], messageHash)
+
     def create_ohlcv_object(self, symbol: str, timeframe: str, data):
         res = {}
         res[symbol] = {}

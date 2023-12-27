@@ -5117,6 +5117,14 @@ export default class Exchange {
         return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
     }
 
+    resolveMultipleOHLCV (client, prefix: string, symbol: string, timeframe: string, data) {
+        const messageHashes = this.findMessageHashes (client, 'multipleOHLCV::' + symbol + '#' + timeframe);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            client.resolve ([ symbol, timeframe, data ], messageHash);
+        }
+    }
+
     createOHLCVObject (symbol: string, timeframe: string, data): Dictionary<Dictionary<OHLCV[]>> {
         const res = {};
         res[symbol] = {};

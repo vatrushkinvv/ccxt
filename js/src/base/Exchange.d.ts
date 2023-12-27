@@ -876,6 +876,7 @@ export default class Exchange {
     fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     filterByArrayPositions(objects: any, key: IndexType, values?: any, indexed?: boolean): Position[];
     filterByArrayTickers(objects: any, key: IndexType, values?: any, indexed?: boolean): Dictionary<Ticker>;
+    resolveMultipleOHLCV(client: any, prefix: string, symbol: string, timeframe: string, data: any): void;
     createOHLCVObject(symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>>;
     handleMaxEntriesPerRequestAndParams(method: string, maxEntriesPerRequest?: Int, params?: {}): [Int, any];
     fetchPaginatedCallDynamic(method: string, symbol?: string, since?: Int, limit?: Int, params?: {}, maxEntriesPerRequest?: Int): Promise<any>;

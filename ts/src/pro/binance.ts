@@ -22,7 +22,7 @@ export default class binance extends binanceRest {
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
-                'watchOHLCVForSymbols': false,
+                'watchOHLCVForSymbols': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
@@ -746,6 +746,66 @@ export default class binance extends binanceRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchOHLCVForSymbols
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const options = this.safeValue (this.options, 'watchOHLCV', {});
+        const nameOption = this.safeString (options, 'name', 'kline');
+        const name = this.safeString (params, 'name', nameOption);
+        params = this.omit (params, 'name');
+        const firstMarket = this.market (symbolsAndTimeframes[0][0]);
+        let type = firstMarket['type'];
+        if (firstMarket['contract']) {
+            type = firstMarket['linear'] ? 'future' : 'delivery';
+        }
+        const messageHashes = [];
+        const subParams = [];
+        const hashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = symbolsAndTimeframes[i];
+            const symbolString = data[0];
+            const timeframeString = data[1];
+            const interval = this.safeString (this.timeframes, timeframeString, timeframeString);
+            const market = this.market (symbolString);
+            let marketId = market['lowercaseId'];
+            if (name === 'indexPriceKline') {
+                // weird behavior for index price kline we can't use the perp suffix
+                marketId = marketId.replace ('_perp', '');
+            }
+            const topic = marketId + '@' + name + '_' + interval;
+            const hash = symbolString + '#' + timeframeString;
+            const messageHash = 'multipleOHLCV::' + hash;
+            subParams.push (topic);
+            hashes.push (hash);
+            messageHashes.push (messageHash);
+        }
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'multipleOHLCV');
+        const requestId = this.requestId (url);
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': subParams,
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        const [ symbol, timeframe, ohlcvs ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), subParams, subscribe);
+        if (this.newUpdates) {
+            limit = ohlcvs.getLimit (symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit (ohlcvs, since, limit, 0, true);
+        return this.createOHLCVObject (symbol, timeframe, filtered);
+    }
+
     handleOHLCV (client: Client, message) {
         //
         //     {
@@ -810,6 +870,8 @@ export default class binance extends binanceRest {
         }
         stored.append (parsed);
         client.resolve (stored, messageHash);
+        // watchOHLCVForSymbols part
+        this.resolveMultipleOHLCV (client, 'multipleOHLCV::', symbol, timeframe, stored);
     }
 
     async watchLeverageUpdates (params?: {}): Promise<LeverageUpdates> {

@@ -5628,6 +5628,14 @@ class Exchange {
         return $this->filter_by_array($objects, $key, $values, $indexed);
     }
 
+    public function resolve_multiple_ohlcv($client, string $prefix, string $symbol, string $timeframe, $data) {
+        $messageHashes = $this->findMessageHashes ($client, 'multipleOHLCV::' . $symbol . '#' . $timeframe);
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $client->resolve (array( $symbol, $timeframe, $data ), $messageHash);
+        }
+    }
+
     public function create_ohlcv_object(string $symbol, string $timeframe, $data) {
         $res = array();
         $res[$symbol] = array();
