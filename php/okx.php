@@ -91,7 +91,7 @@ class okx extends Exchange {
                 'fetchOrderBooks' => false,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
-                'fetchPermissions' => null,
+                'fetchPermissions' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchPositionsForSymbol' => true,
@@ -7170,5 +7170,47 @@ class okx extends Exchange {
             throw new ExchangeError($feedback); // unknown $message
         }
         return null;
+    }
+
+    public function fetch_permissions(?array () $params): ApiKeyPermission {
+        $this->load_markets();
+        $response = $this->privateGetAccountConfig ($params);
+        // {
+        //     "code" => "0",
+        //     "data" => array(
+        //         {
+        //             "acctLv" => "3",
+        //             "autoLoan" => true,
+        //             "ctIsoMode" => "automatic",
+        //             "greeksType" => "PA",
+        //             "level" => "Lv1",
+        //             "levelTmp" => "",
+        //             "mgnIsoMode" => "automatic",
+        //             "posMode" => "net_mode",
+        //             "spotOffsetType" => "",
+        //             "uid" => "44705892343619584",
+        //             "label" => "V5 Test",
+        //             "roleType" => "0",
+        //             "traderInsts" => array(),
+        //             "spotRoleType" => "0",
+        //             "spotTraderInsts" => array(),
+        //             "opAuth" => "0",
+        //             "kycLv" => "3",
+        //             "ip" => "120.255.24.182,49.245.196.13",
+        //             "perm" => "read_only,withdraw,trade",
+        //             "mainUid" => "444810535339712570"
+        //         }
+        //     ),
+        //     "msg" => ""
+        // }
+        $data = $this->safe_value($response, 'data');
+        $permissionsStr = $this->safe_string($data[0], 'perm');
+        $permissions = explode(',', $permissionsStr);
+        return array(
+            'spotEnabled' => $this->in_array('trade', $permissions),
+            'marginEnabled' => false,
+            'withdrawlsEnabled' => $this->in_array('withdraw', $permissions),
+            'futuresEnabled' => $this->in_array('trade', $permissions),
+        );
     }
 }

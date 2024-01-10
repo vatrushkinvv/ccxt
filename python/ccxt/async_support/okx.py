@@ -117,7 +117,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchOrderBooks': False,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
-                'fetchPermissions': None,
+                'fetchPermissions': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
                 'fetchPositionsForSymbol': True,
@@ -6791,3 +6791,44 @@ class okx(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             raise ExchangeError(feedback)  # unknown message
         return None
+
+    async def fetch_permissions(self, params: {}) -> ApiKeyPermission:
+        await self.load_markets()
+        response = await self.privateGetAccountConfig(params)
+        # {
+        #     "code": "0",
+        #     "data": [
+        #         {
+        #             "acctLv": "3",
+        #             "autoLoan": True,
+        #             "ctIsoMode": "automatic",
+        #             "greeksType": "PA",
+        #             "level": "Lv1",
+        #             "levelTmp": "",
+        #             "mgnIsoMode": "automatic",
+        #             "posMode": "net_mode",
+        #             "spotOffsetType": "",
+        #             "uid": "44705892343619584",
+        #             "label": "V5 Test",
+        #             "roleType": "0",
+        #             "traderInsts": [],
+        #             "spotRoleType": "0",
+        #             "spotTraderInsts": [],
+        #             "opAuth": "0",
+        #             "kycLv": "3",
+        #             "ip": "120.255.24.182,49.245.196.13",
+        #             "perm": "read_only,withdraw,trade",
+        #             "mainUid": "444810535339712570"
+        #         }
+        #     ],
+        #     "msg": ""
+        # }
+        data = self.safe_value(response, 'data')
+        permissionsStr = self.safe_string(data[0], 'perm')
+        permissions = permissionsStr.split(',')
+        return {
+            'spotEnabled': self.in_array('trade', permissions),
+            'marginEnabled': False,
+            'withdrawlsEnabled': self.in_array('withdraw', permissions),
+            'futuresEnabled': self.in_array('trade', permissions),
+        }
