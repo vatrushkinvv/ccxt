@@ -94,7 +94,7 @@ class okx extends okx$1 {
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
-                'fetchPermissions': undefined,
+                'fetchPermissions': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': true,
@@ -7274,6 +7274,47 @@ class okx extends okx$1 {
             throw new errors.ExchangeError(feedback); // unknown message
         }
         return undefined;
+    }
+    async fetchPermissions(params) {
+        await this.loadMarkets();
+        const response = await this.privateGetAccountConfig(params);
+        // {
+        //     "code": "0",
+        //     "data": [
+        //         {
+        //             "acctLv": "3",
+        //             "autoLoan": true,
+        //             "ctIsoMode": "automatic",
+        //             "greeksType": "PA",
+        //             "level": "Lv1",
+        //             "levelTmp": "",
+        //             "mgnIsoMode": "automatic",
+        //             "posMode": "net_mode",
+        //             "spotOffsetType": "",
+        //             "uid": "44705892343619584",
+        //             "label": "V5 Test",
+        //             "roleType": "0",
+        //             "traderInsts": [],
+        //             "spotRoleType": "0",
+        //             "spotTraderInsts": [],
+        //             "opAuth": "0",
+        //             "kycLv": "3",
+        //             "ip": "120.255.24.182,49.245.196.13",
+        //             "perm": "read_only,withdraw,trade",
+        //             "mainUid": "444810535339712570"
+        //         }
+        //     ],
+        //     "msg": ""
+        // }
+        const data = this.safeValue(response, 'data');
+        const permissionsStr = this.safeString(data[0], 'perm');
+        const permissions = permissionsStr.split(',');
+        return {
+            'spotEnabled': this.inArray('trade', permissions),
+            'marginEnabled': false,
+            'withdrawlsEnabled': this.inArray('withdraw', permissions),
+            'futuresEnabled': this.inArray('trade', permissions),
+        };
     }
 }
 

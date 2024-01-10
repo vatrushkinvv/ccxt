@@ -1,5 +1,5 @@
 import Exchange from './abstract/okx.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, ApiKeyPermission } from './base/types.js';
 /**
  * @class okx
  * @augments Exchange
@@ -327,4 +327,5 @@ export default class okx extends Exchange {
     };
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    fetchPermissions(params?: {}): Promise<ApiKeyPermission>;
 }
