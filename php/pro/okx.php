@@ -798,7 +798,38 @@ class okx extends \ccxt\async\okx {
         $oldBalance = $this->safe_value($this->balance, $type, array());
         $newBalance = $this->deep_extend($oldBalance, $balance);
         $this->balance[$type] = $this->safe_balance($newBalance);
+        if (!$oldBalance || $this->is_balance_same($oldBalance, $this->balance[$type])) {
+            return;
+        }
         $client->resolve ($this->balance[$type], $channel);
+    }
+
+    public function is_balance_same(array $oldBalance, array $newBalance): bool {
+        $tokens = is_array($newBalance) ? array_keys($newBalance) : array();
+        for ($i = 0; $i < count($tokens); $i++) {
+            $token = $tokens[$i];
+            if (!$this->safe_value($oldBalance, $token)) {
+                return false;
+            }
+            $oldTokenBalance = $oldBalance[$token];
+            $newTokenBalance = $newBalance[$token];
+            if ($oldTokenBalance['total'] !== $newTokenBalance['total']) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public function get_tokens_update_time(mixed $updateBalanceMessage) {
+        $details = $this->safe_value($updateBalanceMessage, 'details', array());
+        $result = array();
+        for ($i = 0; $i < count($details); $i++) {
+            $detail = $details[$i];
+            $uTime = $this->safe_integer($detail, 'uTime');
+            $token = $this->safe_string($detail, 'ccy');
+            $result[$token] = $uTime;
+        }
+        return $result;
     }
 
     public function order_to_trade($order, $market = null) {

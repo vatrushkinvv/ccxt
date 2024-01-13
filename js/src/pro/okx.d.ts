@@ -23,6 +23,8 @@ export default class okx extends okxRest {
     authenticate(params?: {}): Promise<any>;
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
+    isBalanceSame(oldBalance: Balances, newBalance: Balances): boolean;
+    getTokensUpdateTime(updateBalanceMessage: any): {};
     orderToTrade(order: any, market?: any): Trade;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;

@@ -728,7 +728,31 @@ class okx(ccxt.async_support.okx):
         oldBalance = self.safe_value(self.balance, type, {})
         newBalance = self.deep_extend(oldBalance, balance)
         self.balance[type] = self.safe_balance(newBalance)
+        if not oldBalance or self.is_balance_same(oldBalance, self.balance[type]):
+            return
         client.resolve(self.balance[type], channel)
+
+    def is_balance_same(self, oldBalance: Balances, newBalance: Balances) -> bool:
+        tokens = list(newBalance.keys())
+        for i in range(0, len(tokens)):
+            token = tokens[i]
+            if not self.safe_value(oldBalance, token):
+                return False
+            oldTokenBalance = oldBalance[token]
+            newTokenBalance = newBalance[token]
+            if oldTokenBalance['total'] != newTokenBalance['total']:
+                return False
+        return True
+
+    def get_tokens_update_time(self, updateBalanceMessage: Any):
+        details = self.safe_value(updateBalanceMessage, 'details', [])
+        result = {}
+        for i in range(0, len(details)):
+            detail = details[i]
+            uTime = self.safe_integer(detail, 'uTime')
+            token = self.safe_string(detail, 'ccy')
+            result[token] = uTime
+        return result
 
     def order_to_trade(self, order, market=None):
         info = self.safe_value(order, 'info', {})
