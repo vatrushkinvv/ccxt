@@ -773,7 +773,36 @@ export default class okx extends okxRest {
         const oldBalance = this.safeValue(this.balance, type, {});
         const newBalance = this.deepExtend(oldBalance, balance);
         this.balance[type] = this.safeBalance(newBalance);
+        if (!Object.keys(oldBalance).length || this.isBalanceSame(oldBalance, this.balance[type])) {
+            return;
+        }
         client.resolve(this.balance[type], channel);
+    }
+    isBalanceSame(oldBalance, newBalance) {
+        const tokens = Object.keys(newBalance);
+        for (let i = 0; i < tokens.length; i++) {
+            const token = tokens[i];
+            if (!this.safeValue(oldBalance, token)) {
+                return false;
+            }
+            const oldTokenBalance = oldBalance[token];
+            const newTokenBalance = newBalance[token];
+            if (oldTokenBalance['total'] !== newTokenBalance['total']) {
+                return false;
+            }
+        }
+        return true;
+    }
+    getTokensUpdateTime(updateBalanceMessage) {
+        const details = this.safeValue(updateBalanceMessage, 'details', []);
+        const result = {};
+        for (let i = 0; i < details.length; i++) {
+            const detail = details[i];
+            const uTime = this.safeInteger(detail, 'uTime');
+            const token = this.safeString(detail, 'ccy');
+            result[token] = uTime;
+        }
+        return result;
     }
     orderToTrade(order, market = undefined) {
         const info = this.safeValue(order, 'info', {});
