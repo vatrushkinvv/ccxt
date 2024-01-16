@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Ticker, OrderBook, Tickers, Strings, Market, Currency, ApiKeyPermission } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -62,6 +62,7 @@ export default class krakenfutures extends Exchange {
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchPermissions': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
@@ -2416,5 +2417,14 @@ export default class krakenfutures extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async fetchPermissions (params?: {}): Promise<ApiKeyPermission> {
+        return {
+            'spotEnabled': false,
+            'marginEnabled': false,
+            'withdrawlsEnabled': false,
+            'futuresEnabled': true,
+        };
     }
 }

@@ -88,6 +88,7 @@ class kraken(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': 'emulated',
+                'fetchPermissions': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -2660,3 +2661,11 @@ class kraken(Exchange, ImplicitAPI):
                             self.throw_exactly_matched_exception(self.exceptions, error, message)
                         raise ExchangeError(message)
         return None
+
+    async def fetch_permissions(self, params: {}) -> ApiKeyPermission:
+        return {
+            'spotEnabled': True,
+            'marginEnabled': False,
+            'withdrawlsEnabled': False,
+            'futuresEnabled': False,
+        }

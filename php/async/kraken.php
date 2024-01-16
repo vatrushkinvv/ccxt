@@ -80,6 +80,7 @@ class kraken extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => 'emulated',
+                'fetchPermissions' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -2902,5 +2903,14 @@ class kraken extends Exchange {
             }
         }
         return null;
+    }
+
+    public function fetch_permissions(?array () $params): PromiseInterface {
+        return array(
+            'spotEnabled' => true,
+            'marginEnabled' => false,
+            'withdrawlsEnabled' => false,
+            'futuresEnabled' => false,
+        );
     }
 }

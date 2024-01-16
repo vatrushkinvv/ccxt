@@ -69,6 +69,7 @@ class kraken extends kraken$1 {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': 'emulated',
+                'fetchPermissions': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -2849,6 +2850,14 @@ class kraken extends kraken$1 {
             }
         }
         return undefined;
+    }
+    async fetchPermissions(params) {
+        return {
+            'spotEnabled': true,
+            'marginEnabled': false,
+            'withdrawlsEnabled': false,
+            'futuresEnabled': false,
+        };
     }
 }
 

@@ -64,6 +64,7 @@ export default class krakenfutures extends Exchange {
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchPermissions': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
@@ -2404,5 +2405,13 @@ export default class krakenfutures extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+    async fetchPermissions(params) {
+        return {
+            'spotEnabled': false,
+            'marginEnabled': false,
+            'withdrawlsEnabled': false,
+            'futuresEnabled': true,
+        };
     }
 }

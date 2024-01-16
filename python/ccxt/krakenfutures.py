@@ -76,6 +76,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchOrder': False,
                 'fetchOrderBook': True,
                 'fetchOrders': False,
+                'fetchPermissions': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTickers': True,
@@ -2253,3 +2254,11 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'Authent': signature,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def fetch_permissions(self, params: {}) -> ApiKeyPermission:
+        return {
+            'spotEnabled': False,
+            'marginEnabled': False,
+            'withdrawlsEnabled': False,
+            'futuresEnabled': True,
+        }
