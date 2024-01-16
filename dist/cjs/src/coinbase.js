@@ -86,6 +86,7 @@ class coinbase extends coinbase$1 {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPermissions': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
@@ -3268,6 +3269,18 @@ class coinbase extends coinbase$1 {
             throw new errors.ExchangeError(this.id + ' failed due to a malformed response ' + this.json(response));
         }
         return undefined;
+    }
+    async fetchPermissions(params) {
+        await this.loadMarkets();
+        const response = await this.v2PrivateGetUserAuth();
+        const data = this.safeValue(response, 'data', {});
+        const scopes = this.safeValue(data, 'scopes', []);
+        return {
+            'spotEnabled': this.inArray('wallet:trades:create', scopes) && this.inArray('wallet:trades:read', scopes),
+            'marginEnabled': false,
+            'withdrawlsEnabled': this.inArray('wallet:withdrawals:create', scopes),
+            'futuresEnabled': false,
+        };
     }
 }
 

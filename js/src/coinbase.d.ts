@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbase.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, ApiKeyPermission } from './base/types.js';
 /**
  * @class coinbase
  * @augments Exchange
@@ -121,4 +121,5 @@ export default class coinbase extends Exchange {
         headers: any;
     };
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    fetchPermissions(params?: {}): Promise<ApiKeyPermission>;
 }

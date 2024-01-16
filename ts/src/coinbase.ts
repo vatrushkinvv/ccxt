@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, ApiKeyPermission } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -88,6 +88,7 @@ export default class coinbase extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPermissions': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
@@ -3303,5 +3304,18 @@ export default class coinbase extends Exchange {
             throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
         }
         return undefined;
+    }
+
+    async fetchPermissions (params?: {}): Promise<ApiKeyPermission> {
+        await this.loadMarkets ();
+        const response = await this.v2PrivateGetUserAuth ();
+        const data = this.safeValue (response, 'data', {});
+        const scopes = this.safeValue (data, 'scopes', []);
+        return {
+            'spotEnabled': this.inArray ('wallet:trades:create', scopes) && this.inArray ('wallet:trades:read', scopes),
+            'marginEnabled': false,
+            'withdrawlsEnabled': this.inArray ('wallet:withdrawals:create', scopes),
+            'futuresEnabled': false,
+        };
     }
 }

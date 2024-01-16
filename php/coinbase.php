@@ -83,6 +83,7 @@ class coinbase extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPermissions' => true,
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
@@ -3242,5 +3243,18 @@ class coinbase extends Exchange {
             throw new ExchangeError($this->id . ' failed due to a malformed $response ' . $this->json($response));
         }
         return null;
+    }
+
+    public function fetch_permissions(?array () $params): ApiKeyPermission {
+        $this->load_markets();
+        $response = $this->v2PrivateGetUserAuth ();
+        $data = $this->safe_value($response, 'data', array());
+        $scopes = $this->safe_value($data, 'scopes', array());
+        return array(
+            'spotEnabled' => $this->in_array('wallet:trades:create', $scopes) && $this->in_array('wallet:trades:read', $scopes),
+            'marginEnabled' => false,
+            'withdrawlsEnabled' => $this->in_array('wallet:withdrawals:create', $scopes),
+            'futuresEnabled' => false,
+        );
     }
 }

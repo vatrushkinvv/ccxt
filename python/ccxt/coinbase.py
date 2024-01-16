@@ -96,6 +96,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPermissions': True,
                 'fetchPosition': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
@@ -3081,3 +3082,15 @@ class coinbase(Exchange, ImplicitAPI):
         if (data is None) and (not advancedTrade):
             raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))
         return None
+
+    def fetch_permissions(self, params: {}) -> ApiKeyPermission:
+        self.load_markets()
+        response = self.v2PrivateGetUserAuth()
+        data = self.safe_value(response, 'data', {})
+        scopes = self.safe_value(data, 'scopes', [])
+        return {
+            'spotEnabled': self.in_array('wallet:trades:create', scopes) and self.in_array('wallet:trades:read', scopes),
+            'marginEnabled': False,
+            'withdrawlsEnabled': self.in_array('wallet:withdrawals:create', scopes),
+            'futuresEnabled': False,
+        }
