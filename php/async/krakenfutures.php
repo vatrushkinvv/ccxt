@@ -64,6 +64,7 @@ class krakenfutures extends Exchange {
                 'fetchOrder' => false,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
+                'fetchPermissions' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTickers' => true,
@@ -2419,5 +2420,14 @@ class krakenfutures extends Exchange {
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function fetch_permissions(?array () $params): PromiseInterface {
+        return array(
+            'spotEnabled' => false,
+            'marginEnabled' => false,
+            'withdrawlsEnabled' => false,
+            'futuresEnabled' => true,
+        );
     }
 }

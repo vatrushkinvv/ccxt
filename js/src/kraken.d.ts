@@ -1,5 +1,5 @@
 import Exchange from './abstract/kraken.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, ApiKeyPermission } from './base/types.js';
 /**
  * @class kraken
  * @augments Exchange
@@ -132,4 +132,5 @@ export default class kraken extends Exchange {
     };
     nonce(): number;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    fetchPermissions(params?: {}): Promise<ApiKeyPermission>;
 }

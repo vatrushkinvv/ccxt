@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, ApiKeyPermission } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -71,6 +71,7 @@ export default class kraken extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': 'emulated',
+                'fetchPermissions': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -2887,5 +2888,14 @@ export default class kraken extends Exchange {
             }
         }
         return undefined;
+    }
+
+    async fetchPermissions (params?: {}): Promise<ApiKeyPermission> {
+        return {
+            'spotEnabled': true,
+            'marginEnabled': false,
+            'withdrawlsEnabled': false,
+            'futuresEnabled': false,
+        };
     }
 }
