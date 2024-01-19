@@ -41,6 +41,8 @@ class bybit extends \ccxt\async\bybit {
                 'watchTrades' => true,
                 'watchPositions' => true,
                 'watchTradesForSymbols' => true,
+                'watchFundingFee' => false,
+                'watchLeverageUpdates' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -1783,13 +1785,14 @@ class bybit extends \ccxt\async\bybit {
             'execution' => array($this, 'handle_my_trades'),
             'ticketInfo' => array($this, 'handle_my_trades'),
             'user.openapi.perp.trade' => array($this, 'handle_my_trades'),
-            'position' => array($this, 'handle_positions'),
+            'position' => array($this, 'handle_positions_and_leverages'),
         );
         $exacMethod = $this->safe_value($methods, $topic);
         if ($exacMethod !== null) {
             $exacMethod($client, $message);
             return;
         }
+        var_dump (json_encode ($message));
         $keys = is_array($methods) ? array_keys($methods) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
@@ -1868,5 +1871,34 @@ class bybit extends \ccxt\async\bybit {
         //    }
         //
         return $message;
+    }
+
+    public function handle_positions_and_leverages(Client $client, $message) {
+        $this->handle_positions($client, $message);
+        $this->handle_leverage_updates($client, $message);
+    }
+
+    public function watch_leverage_updates(?array () $params): PromiseInterface {
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            $method = 'watchPositions';
+            $url = $this->get_url_by_market_type(null, true, $method, $params);
+            $messageHash = 'leverageUpdates';
+            Async\await($this->authenticate($url));
+            $topics = array( 'position' );
+            return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
+        }) ();
+    }
+
+    public function handle_leverage_updates(Client $client, $message) {
+        $rawPositions = $this->safe_value($message, 'data', array());
+        for ($i = 0; $i < count($rawPositions); $i++) {
+            $rawPosition = $rawPositions[$i];
+            $position = $this->parse_position($rawPosition);
+            $client->resolve (array(
+                'symbol' => $position->symbol,
+                'leverage' => $position->leverage,
+            ), 'leverageUpdates');
+        }
     }
 }

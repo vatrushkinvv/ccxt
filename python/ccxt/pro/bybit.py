@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import asyncio
 import hashlib
+import json
 from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
@@ -43,6 +44,8 @@ class bybit(ccxt.async_support.bybit):
                 'watchTrades': True,
                 'watchPositions': True,
                 'watchTradesForSymbols': True,
+                'watchFundingFee': False,
+                'watchLeverageUpdates': True,
             },
             'urls': {
                 'api': {
@@ -1637,12 +1640,13 @@ class bybit(ccxt.async_support.bybit):
             'execution': self.handle_my_trades,
             'ticketInfo': self.handle_my_trades,
             'user.openapi.perp.trade': self.handle_my_trades,
-            'position': self.handle_positions,
+            'position': self.handle_positions_and_leverages,
         }
         exacMethod = self.safe_value(methods, topic)
         if exacMethod is not None:
             exacMethod(client, message)
             return
+        print(json.dumps(message))
         keys = list(methods.keys())
         for i in range(0, len(keys)):
             key = keys[i]
@@ -1712,3 +1716,26 @@ class bybit(ccxt.async_support.bybit):
         #    }
         #
         return message
+
+    def handle_positions_and_leverages(self, client: Client, message):
+        self.handle_positions(client, message)
+        self.handle_leverage_updates(client, message)
+
+    async def watch_leverage_updates(self, params: {}) -> LeverageUpdates:
+        await self.load_markets()
+        method = 'watchPositions'
+        url = self.get_url_by_market_type(None, True, method, params)
+        messageHash = 'leverageUpdates'
+        await self.authenticate(url)
+        topics = ['position']
+        return await self.watch_topics(url, [messageHash], topics, params)
+
+    def handle_leverage_updates(self, client: Client, message):
+        rawPositions = self.safe_value(message, 'data', [])
+        for i in range(0, len(rawPositions)):
+            rawPosition = rawPositions[i]
+            position = self.parse_position(rawPosition)
+            client.resolve({
+                'symbol': position.symbol,
+                'leverage': position.leverage,
+            }, 'leverageUpdates')

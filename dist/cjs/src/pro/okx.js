@@ -29,6 +29,8 @@ class okx extends okx$1 {
                 'cancelOrderWs': true,
                 'cancelOrdersWs': true,
                 'cancelAllOrdersWs': true,
+                'watchLeverageUpdates': false,
+                'watchFundingFee': false,
             },
             'urls': {
                 'api': {
