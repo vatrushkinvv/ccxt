@@ -33,6 +33,8 @@ class bybit extends bybit$1 {
                 'watchTrades': true,
                 'watchPositions': true,
                 'watchTradesForSymbols': true,
+                'watchFundingFee': false,
+                'watchLeverageUpdates': true,
             },
             'urls': {
                 'api': {
@@ -1758,13 +1760,14 @@ class bybit extends bybit$1 {
             'execution': this.handleMyTrades,
             'ticketInfo': this.handleMyTrades,
             'user.openapi.perp.trade': this.handleMyTrades,
-            'position': this.handlePositions,
+            'position': this.handlePositionsAndLeverages,
         };
         const exacMethod = this.safeValue(methods, topic);
         if (exacMethod !== undefined) {
             exacMethod.call(this, client, message);
             return;
         }
+        console.log(JSON.stringify(message));
         const keys = Object.keys(methods);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -1840,6 +1843,30 @@ class bybit extends bybit$1 {
         //    }
         //
         return message;
+    }
+    handlePositionsAndLeverages(client, message) {
+        this.handlePositions(client, message);
+        this.handleLeverageUpdates(client, message);
+    }
+    async watchLeverageUpdates(params) {
+        await this.loadMarkets();
+        const method = 'watchPositions';
+        const url = this.getUrlByMarketType(undefined, true, method, params);
+        const messageHash = 'leverageUpdates';
+        await this.authenticate(url);
+        const topics = ['position'];
+        return await this.watchTopics(url, [messageHash], topics, params);
+    }
+    handleLeverageUpdates(client, message) {
+        const rawPositions = this.safeValue(message, 'data', []);
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parsePosition(rawPosition);
+            client.resolve({
+                'symbol': position.symbol,
+                'leverage': position.leverage,
+            }, 'leverageUpdates');
+        }
     }
 }
 

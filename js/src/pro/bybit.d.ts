@@ -1,5 +1,5 @@
 import bybitRest from '../bybit.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, LeverageUpdates } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bybit extends bybitRest {
     describe(): any;
@@ -45,4 +45,7 @@ export default class bybit extends bybitRest {
     handlePong(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;
+    handlePositionsAndLeverages(client: Client, message: any): void;
+    watchLeverageUpdates(params?: {}): Promise<LeverageUpdates>;
+    handleLeverageUpdates(client: Client, message: any): void;
 }

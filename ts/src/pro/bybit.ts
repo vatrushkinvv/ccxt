@@ -5,7 +5,7 @@ import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, LeverageUpdates } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -36,6 +36,8 @@ export default class bybit extends bybitRest {
                 'watchTrades': true,
                 'watchPositions': true,
                 'watchTradesForSymbols': true,
+                'watchFundingFee': false,
+                'watchLeverageUpdates': true,
             },
             'urls': {
                 'api': {
@@ -1774,13 +1776,14 @@ export default class bybit extends bybitRest {
             'execution': this.handleMyTrades,
             'ticketInfo': this.handleMyTrades,
             'user.openapi.perp.trade': this.handleMyTrades,
-            'position': this.handlePositions,
+            'position': this.handlePositionsAndLeverages,
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
             exacMethod.call (this, client, message);
             return;
         }
+        console.log (JSON.stringify (message));
         const keys = Object.keys (methods);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -1859,5 +1862,32 @@ export default class bybit extends bybitRest {
         //    }
         //
         return message;
+    }
+
+    handlePositionsAndLeverages (client:Client, message) {
+        this.handlePositions (client, message);
+        this.handleLeverageUpdates (client, message);
+    }
+
+    async watchLeverageUpdates (params?: {}): Promise<LeverageUpdates> {
+        await this.loadMarkets ();
+        const method = 'watchPositions';
+        const url = this.getUrlByMarketType (undefined, true, method, params);
+        const messageHash = 'leverageUpdates';
+        await this.authenticate (url);
+        const topics = [ 'position' ];
+        return await this.watchTopics (url, [ messageHash ], topics, params);
+    }
+
+    handleLeverageUpdates (client: Client, message) {
+        const rawPositions = this.safeValue (message, 'data', []);
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parsePosition (rawPosition);
+            client.resolve ({
+                'symbol': position.symbol,
+                'leverage': position.leverage,
+            }, 'leverageUpdates');
+        }
     }
 }

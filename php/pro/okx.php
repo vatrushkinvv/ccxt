@@ -36,6 +36,8 @@ class okx extends \ccxt\async\okx {
                 'cancelOrderWs' => true,
                 'cancelOrdersWs' => true,
                 'cancelAllOrdersWs' => true,
+                'watchLeverageUpdates' => false,
+                'watchFundingFee' => false,
             ),
             'urls' => array(
                 'api' => array(

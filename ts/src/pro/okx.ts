@@ -32,6 +32,8 @@ export default class okx extends okxRest {
                 'cancelOrderWs': true,
                 'cancelOrdersWs': true,
                 'cancelAllOrdersWs': true,
+                'watchLeverageUpdates': false,
+                'watchFundingFee': false,
             },
             'urls': {
                 'api': {

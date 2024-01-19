@@ -38,6 +38,8 @@ class okx(ccxt.async_support.okx):
                 'cancelOrderWs': True,
                 'cancelOrdersWs': True,
                 'cancelAllOrdersWs': True,
+                'watchLeverageUpdates': False,
+                'watchFundingFee': False,
             },
             'urls': {
                 'api': {
