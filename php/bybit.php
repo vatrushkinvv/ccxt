@@ -7556,11 +7556,12 @@ class bybit extends Exchange {
         $futuresPermissions = $this->safe_value($permissions, 'ContractTrade');
         $spotPermissions = $this->safe_value($permissions, 'Spot');
         $withdrawlPermissions = $this->safe_value($permissions, 'Wallet');
+        $derivativesPermissions = $this->safe_value($permissions, 'Derivatives');
         return array(
             'spotEnabled' => mb_strpos($spotPermissions, 'SpotTrade') > -1,
             'marginEnabled' => false,
             'withdrawlsEnabled' => mb_strpos($withdrawlPermissions, 'Withdraw') > -1,
-            'futuresEnabled' => mb_strpos($futuresPermissions, 'Order') > -1 && mb_strpos($futuresPermissions, 'Contract') > -1,
+            'futuresEnabled' => mb_strpos($futuresPermissions, 'Order') > -1 && mb_strpos($futuresPermissions, 'Position') > -1 && mb_strpos($derivativesPermissions, 'DerivativesTrade') > -1,
         );
     }
 }

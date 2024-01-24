@@ -7,7 +7,6 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import asyncio
 import hashlib
-import json
 from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
@@ -1646,7 +1645,6 @@ class bybit(ccxt.async_support.bybit):
         if exacMethod is not None:
             exacMethod(client, message)
             return
-        print(json.dumps(message))
         keys = list(methods.keys())
         for i in range(0, len(keys)):
             key = keys[i]

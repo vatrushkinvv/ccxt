@@ -1767,7 +1767,6 @@ class bybit extends bybit$1 {
             exacMethod.call(this, client, message);
             return;
         }
-        console.log(JSON.stringify(message));
         const keys = Object.keys(methods);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
