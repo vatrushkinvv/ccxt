@@ -1792,7 +1792,6 @@ class bybit extends \ccxt\async\bybit {
             $exacMethod($client, $message);
             return;
         }
-        var_dump (json_encode ($message));
         $keys = is_array($methods) ? array_keys($methods) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];

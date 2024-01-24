@@ -7148,9 +7148,10 @@ class bybit(Exchange, ImplicitAPI):
         futuresPermissions = self.safe_value(permissions, 'ContractTrade')
         spotPermissions = self.safe_value(permissions, 'Spot')
         withdrawlPermissions = self.safe_value(permissions, 'Wallet')
+        derivativesPermissions = self.safe_value(permissions, 'Derivatives')
         return {
             'spotEnabled': spotPermissions.find('SpotTrade') > -1,
             'marginEnabled': False,
             'withdrawlsEnabled': withdrawlPermissions.find('Withdraw') > -1,
-            'futuresEnabled': futuresPermissions.find('Order') > -1 and futuresPermissions.find('Contract') > -1,
+            'futuresEnabled': futuresPermissions.find('Order') > -1 and futuresPermissions.find('Position') > -1 and derivativesPermissions.find('DerivativesTrade') > -1,
         }

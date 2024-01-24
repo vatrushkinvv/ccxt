@@ -7685,11 +7685,12 @@ export default class bybit extends Exchange {
         const futuresPermissions = this.safeValue(permissions, 'ContractTrade');
         const spotPermissions = this.safeValue(permissions, 'Spot');
         const withdrawlPermissions = this.safeValue(permissions, 'Wallet');
+        const derivativesPermissions = this.safeValue(permissions, 'Derivatives');
         return {
             'spotEnabled': spotPermissions.indexOf('SpotTrade') > -1,
             'marginEnabled': false,
             'withdrawlsEnabled': withdrawlPermissions.indexOf('Withdraw') > -1,
-            'futuresEnabled': futuresPermissions.indexOf('Order') > -1 && futuresPermissions.indexOf('Contract') > -1,
+            'futuresEnabled': futuresPermissions.indexOf('Order') > -1 && futuresPermissions.indexOf('Position') > -1 && derivativesPermissions.indexOf('DerivativesTrade') > -1,
         };
     }
 }
